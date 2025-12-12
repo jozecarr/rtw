@@ -3,6 +3,9 @@
 
 #include "hittable.h"
 #include "material.h"
+#include <thread>
+#include <vector>
+#include <mutex>
 
 class camera {
     public:
@@ -98,8 +101,9 @@ class camera {
 
             auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
             auto ray_direction = pixel_sample - ray_origin;
+            auto ray_time = random_double();
 
-            return ray(ray_origin, ray_direction);
+            return ray(ray_origin, ray_direction, ray_time);
         }
 
         vec3 sample_square() const {

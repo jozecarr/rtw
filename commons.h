@@ -15,7 +15,8 @@ using std::shared_ptr;
 
 // Constants
 
-const double infinity = std::numeric_limits<double>::infinity();
+// Use max() instead of infinity to avoid UB under fast-math-style flags.
+const double infinity = std::numeric_limits<double>::max();
 const double pi = 3.1415926535897932385;
 
 // Utility Functions
@@ -32,6 +33,11 @@ inline double random_double() {
 inline double random_double(double min, double max) {
     // Returns a random real in [min,max)
     return min + (max-min)*random_double();
+}
+
+inline int random_int(int min, int max) {
+    // returns random int in [min, max]
+    return int(random_double(min, max + 1));
 }
 
 // Common Headers
