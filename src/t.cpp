@@ -9,7 +9,7 @@
 #include "sphere.h"
 #include "quad.h"
 
-void health_check(bool do_threading = true) { //よ
+void health_check(bool do_threading = true, int thread_count = 0) { //よ
     hittable_list world;
 
     auto red   = make_shared<lambertian>(colour(0.65, 0.05, 0.05));
@@ -29,10 +29,16 @@ void health_check(bool do_threading = true) { //よ
     cam.vup      = vec3(0,1,0);
     cam.defocus_angle = 0;
 
-    do_threading ? cam.render(world) : cam.render(world, 1);
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
 }
 
-void lotso_spheres() {
+void lotso_spheres(bool do_threading = true, int thread_count = 0) {
     hittable_list world;
 
     auto checker = make_shared<checker_texture>(0.32, colour(.2, .3, .1), colour(.9, .9, .9));
@@ -94,10 +100,16 @@ void lotso_spheres() {
     cam.defocus_angle = 0.6;
     cam.focus_dist    = 10.0;
 
-    cam.render(world);
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
 }
 
-void checkered_spheres() {
+void checkered_spheres(bool do_threading = true, int thread_count = 0) {
     hittable_list world;
 
     auto checker = make_shared<checker_texture>(0.32, colour(.2, .3, .1), colour(.9, .9, .9));
@@ -120,10 +132,16 @@ void checkered_spheres() {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
 }
 
-void earth() {
+void earth(bool do_threading = true, int thread_count = 0) {
     auto earth_texture = make_shared<image_texture>("images/earthmap.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
     auto globe = make_shared<sphere>(point3(0,0,0), 2, earth_surface);
@@ -143,10 +161,16 @@ void earth() {
 
     cam.defocus_angle = 0;
 
-    cam.render(hittable_list(globe));
+    if (thread_count > 0) {
+        cam.render(hittable_list(globe), thread_count);
+    } else if (do_threading) {
+        cam.render(hittable_list(globe));
+    } else {
+        cam.render(hittable_list(globe), 1);
+    }
 }
 
-void perlin_spheres() {
+void perlin_spheres(bool do_threading = true, int thread_count = 0) {
     hittable_list world;
 
     auto pertext = make_shared<noise_texture>(4);
@@ -168,10 +192,16 @@ void perlin_spheres() {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
 }
 
-void quads() {
+void quads(bool do_threading = true, int thread_count = 0) {
     hittable_list world;
 
     auto left_red     = make_shared<lambertian>(colour(1.0, 0.2, 0.2));
@@ -201,10 +231,16 @@ void quads() {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
 }
 
-void simple_light() {
+void simple_light(bool do_threading = true, int thread_count = 0) {
     hittable_list world;
 
     auto pertext = make_shared<noise_texture>(4);
@@ -230,10 +266,16 @@ void simple_light() {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
 }
 
-void cornell_box() {
+void cornell_box(bool do_threading = true, int thread_count = 0) {
     hittable_list world;
 
     auto red   = make_shared<lambertian>(colour(.65, .05, .05));
@@ -273,10 +315,16 @@ void cornell_box() {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
 }
 
-void cornell_smoke() {
+void cornell_smoke(bool do_threading = true, int thread_count = 0) {
     hittable_list world;
 
     auto red   = make_shared<lambertian>(colour(.65, .05, .05));
@@ -317,10 +365,16 @@ void cornell_smoke() {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
 }
 
-void big_scene(int image_width, int samples_per_pixel, int max_depth) {
+void big_scene(int image_width, int samples_per_pixel, int max_depth, bool do_threading = true, int thread_count = 0) {
     hittable_list boxes1;
     auto ground = make_shared<lambertian>(colour(0.48, 0.83, 0.53));
 
@@ -396,7 +450,13 @@ void big_scene(int image_width, int samples_per_pixel, int max_depth) {
 
     cam.defocus_angle = 0;
 
-    cam.render(world);
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
 }
 
 int main() {
@@ -404,22 +464,11 @@ int main() {
     using std::chrono::duration_cast;
     using std::chrono::milliseconds;
 
+    bool do_threading = true;
+    int thread_count = 0; //(0=automatic thread count)
+
     auto start1 = clock::now();
-
-    switch (-9) {
-        case 0:  health_check();            break;
-        case 1:  lotso_spheres();           break;
-        case 2:  checkered_spheres();       break;
-        case 3:  earth();                   break;
-        case 4:  perlin_spheres();          break;
-        case 5:  quads();                   break;
-        case 6:  simple_light();            break;
-        case 7:  cornell_box();             break;
-        case 8:  cornell_smoke();           break;
-        case 9:  big_scene(800, 10000, 40); break;
-        default: big_scene(800,   250,  4); break;
-    }
-
+    quads(do_threading, thread_count);
     auto end1 = clock::now();
 
     std::clog << "time: " << duration_cast<milliseconds>(end1 - start1).count() << " ms" << std::endl;
