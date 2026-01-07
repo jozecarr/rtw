@@ -7,6 +7,7 @@
 #include <vector>
 #include <mutex>
 #include <sstream>
+#include <atomic>
 
 class camera {
     public:
@@ -32,12 +33,30 @@ class camera {
         int threads_to_use = num_threads > 0 ? num_threads : std::thread::hardware_concurrency();
         std::vector<std::thread> threads;
         std::vector<std::string> scanline_buffers(image_height);
+        std::atomic<int> rows_done{0};
+        std::mutex log_mutex;
+        std::vector<int> thread_totals(threads_to_use, 0);
+        std::vector<std::atomic<int>> thread_rows_done(threads_to_use);
+
+        auto log_progress = [&](int done) {
+            std::lock_guard<std::mutex> lock(log_mutex);
+            std::ostringstream ss;
+            ss << "\rTotal " << done << '/' << image_height << " | ";
+            for (int idx = 0; idx < threads_to_use; idx++) {
+                ss << 'T' << idx << ':' << thread_rows_done[idx].load() << '/' << thread_totals[idx];
+                if (idx + 1 < threads_to_use) ss << ' ';
+            }
+            std::clog << ss.str() << std::flush;
+        };
 
         int rows_per_thread = image_height / threads_to_use;
         for (int t = 0; t < threads_to_use; t++) {
             int start = t * rows_per_thread;
             int end = (t == threads_to_use - 1) ? image_height : start + rows_per_thread;
-            threads.emplace_back([this, &world, &scanline_buffers, start, end]() {
+            thread_totals[t] = end - start;
+            thread_rows_done[t] = 0;
+
+            threads.emplace_back([this, &world, &scanline_buffers, &rows_done, &log_progress, &thread_rows_done, &thread_totals, t, start, end]() {
                 for (int j = start; j < end; j++) {
                     std::ostringstream scanline_stream;
                     for (int i = 0; i < image_width; i++) {
@@ -49,6 +68,12 @@ class camera {
                         write_colour(scanline_stream, pixel_samples_scale * pixel_colour);
                     }
                     scanline_buffers[j] = scanline_stream.str();
+
+                    int done = ++rows_done;
+                    int thread_done = ++thread_rows_done[t];
+                    if (thread_done % 10 == 0 || thread_done == thread_totals[t]) {
+                        log_progress(done);
+                    }
                 }
             });
         }
@@ -56,7 +81,8 @@ class camera {
         for (auto& th : threads) th.join();
         for (int j = 0; j < image_height; j++) std::cout << scanline_buffers[j];
 
-        std::clog << "Done." << std::endl;
+        log_progress(rows_done.load());
+        std::clog << '\n' << "Done." << std::endl;
     };
 
     private:
