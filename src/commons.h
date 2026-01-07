@@ -7,6 +7,7 @@
 #include <limits>
 #include <memory>
 #include <chrono>
+#include <cstdint>
 
 
 // C++ Std Usings
@@ -28,7 +29,24 @@ inline double degrees_to_radians(double degrees) {
 
 inline double random_double() {
     // Returns a random real in [0,1)
-    return std::rand() / (RAND_MAX + 1.0);
+    // xorshift64*; fast thread-local RNG state.
+    static thread_local uint64_t state = 0;
+    if (state == 0) {
+        auto seed = static_cast<uint64_t>(
+            std::chrono::high_resolution_clock::now().time_since_epoch().count()
+        );
+        seed ^= static_cast<uint64_t>(
+            reinterpret_cast<uintptr_t>(&state)
+        );
+        state = seed ? seed : 0x9E3779B97F4A7C15ULL;
+    }
+    uint64_t x = state;
+    x ^= x >> 12;
+    x ^= x << 25;
+    x ^= x >> 27;
+    x *= 0x2545F4914F6CDD1DULL;
+    state = x;
+    return (x >> 11) * (1.0 / 9007199254740992.0);
 }
 
 inline double random_double(double min, double max) {
