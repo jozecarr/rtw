@@ -9,6 +9,8 @@
 #include "sphere.h"
 #include "quad.h"
 
+#include <cstdlib>
+
 void health_check(bool do_threading = true, int thread_count = 0) { //よ
     hittable_list world;
 
@@ -459,16 +461,41 @@ void big_scene(int image_width, int samples_per_pixel, int max_depth, bool do_th
     }
 }
 
-int main() {
+int main(int argc, char** argv) {
     using clock = std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
     using std::chrono::milliseconds;
 
+    auto parse_int = [](const char* s, int fallback) {
+        if (!s) return fallback;
+        char* end = nullptr;
+        long v = std::strtol(s, &end, 10);
+        if (end == s) return fallback;
+        return static_cast<int>(v);
+    };
+
+    int scene = 5;
+    int thread_count = 0; // (0=automatic thread count)
     bool do_threading = true;
-    int thread_count = 0; //(0=automatic thread count)
+
+    if (argc > 1) scene = parse_int(argv[1], scene);
+    if (argc > 2) thread_count = parse_int(argv[2], thread_count);
+    if (argc > 3) do_threading = (parse_int(argv[3], 1) != 0);
 
     auto start1 = clock::now();
-    quads(do_threading, thread_count);
+    switch (scene) {
+        case 0:  health_check(do_threading, thread_count);              break;
+        case 1:  lotso_spheres(do_threading, thread_count);             break;
+        case 2:  checkered_spheres(do_threading, thread_count);         break;
+        case 3:  earth(do_threading, thread_count);                     break;
+        case 4:  perlin_spheres(do_threading, thread_count);            break;
+        case 5:  quads(do_threading, thread_count);                     break;
+        case 6:  simple_light(do_threading, thread_count);              break;
+        case 7:  cornell_box(do_threading, thread_count);               break;
+        case 8:  cornell_smoke(do_threading, thread_count);             break;
+        case 9:  big_scene(800, 10000, 40, do_threading, thread_count); break;
+        default: big_scene(800,   250,  4, do_threading, thread_count); break;
+    }
     auto end1 = clock::now();
 
     std::clog << "time: " << duration_cast<milliseconds>(end1 - start1).count() << " ms" << std::endl;
