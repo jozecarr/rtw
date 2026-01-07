@@ -29,6 +29,7 @@ class camera {
         initialize(); 
         
         std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+        std::clog << "Starting render..." << std::endl;
 
         int threads_to_use = num_threads > 0 ? num_threads : std::thread::hardware_concurrency();
         std::vector<std::thread> threads;
@@ -71,7 +72,7 @@ class camera {
 
                     int done = ++rows_done;
                     int thread_done = ++thread_rows_done[t];
-                    if (thread_done % 10 == 0 || thread_done == thread_totals[t]) {
+                    if (thread_done % 1 == 0 || thread_done == thread_totals[t]) {
                         log_progress(done);
                     }
                 }

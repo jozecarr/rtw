@@ -493,8 +493,8 @@ int main(int argc, char** argv) {
         case 6:  simple_light(do_threading, thread_count);              break;
         case 7:  cornell_box(do_threading, thread_count);               break;
         case 8:  cornell_smoke(do_threading, thread_count);             break;
-        case 9:  big_scene(800, 10000, 40, do_threading, thread_count); break;
-        default: big_scene(800,   250,  4, do_threading, thread_count); break;
+        case 9:  big_scene(2560, 10000, 100, do_threading, thread_count); break;
+        default: health_check(do_threading, thread_count);              break;
     }
     auto end1 = clock::now();
 
