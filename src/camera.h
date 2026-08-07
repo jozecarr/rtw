@@ -11,19 +11,19 @@
 
 class camera {
     public:
-    double aspect_ratio      = 1.0;  // ratio of image width over height
+    float aspect_ratio      = 1.0;  // ratio of image width over height
     int    image_width       = 100;  // rendered image width in pixel count
     int    samples_per_pixel = 10;   // count of random samples for each pixel
     int    max_depth         = 10;   // maximum number of ray bounces into scene
     colour background;               // scene background colour  
 
-    double vfov = 90; // vertical view angle (field of view)
+    float vfov = 90; // vertical view angle (field of view)
     point3 lookfrom = point3(0,0,0); // point cam is looking from
     point3 lookat   = point3(0,0,-1); // point cam is looking at
     vec3   vup      = vec3(0,1,0); // cam relative up direction
 
-    double defocus_angle = 0; // variation angle of rays through each pixel
-    double focus_dist = 10; // distance from camera lookfrom point to plane of perfect focus
+    float defocus_angle = 0; // variation angle of rays through each pixel
+    float focus_dist = 10; // distance from camera lookfrom point to plane of perfect focus
 
     void render(const hittable& world, int num_threads = 0) {
         initialize(); 
@@ -88,7 +88,7 @@ class camera {
 
     private:
         int    image_height;         // Rendered image height
-        double pixel_samples_scale;  // Colour scale factor for a sum of pixel samples
+        float pixel_samples_scale;  // Colour scale factor for a sum of pixel samples
         point3 center;               // Camera center
         point3 pixel00_loc;          // Location of pixel 0, 0
         vec3   pixel_delta_u;        // Offset to pixel to the right
@@ -109,7 +109,7 @@ class camera {
             auto theta = degrees_to_radians(vfov);
             auto h = std::tan(theta/2);
             auto viewport_height = 2 * h * focus_dist;
-            auto viewport_width = viewport_height * (double(image_width)/image_height);
+            auto viewport_width = viewport_height * (float(image_width)/image_height);
 
             // calculate u,v,w uit basis vectors for the cams coord frame
             w = unit_vector(lookfrom - lookat);
@@ -145,14 +145,14 @@ class camera {
 
             auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
             auto ray_direction = pixel_sample - ray_origin;
-            auto ray_time = random_double();
+            auto ray_time = random_float();
 
             return ray(ray_origin, ray_direction, ray_time);
         }
 
         vec3 sample_square() const {
             // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
-            return vec3(random_double() - 0.5, random_double() - 0.5, 0);
+            return vec3(random_float() - 0.5, random_float() - 0.5, 0);
         }
 
         point3 defocus_disk_sample() const {

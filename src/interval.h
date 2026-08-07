@@ -5,36 +5,36 @@
 
 class interval {
     public:
-        double min, max;
+        float min, max;
 
         interval() : min(+infinity), max(-infinity) {} // Default is empty
 
-        interval(double _min, double _max) : min(_min), max(_max) {}
+        interval(float _min, float _max) : min(_min), max(_max) {}
 
         interval(const interval& a, const interval& b) {
             min = a.min <= b.min ? a.min : b.min;
             max = a.max >= b.max ? a.max : b.max;
         }
 
-        double size() const {
+        float size() const {
             return max - min;
         }
 
-        bool contains(double x) const {
+        bool contains(float x) const {
             return min <= x && x <= max;
         }
 
-        bool surrounds(double x) const {
+        bool surrounds(float x) const {
             return min < x && x < max;
         }
 
-        double clamp(double x) const {
+        float clamp(float x) const {
             if (x < min) return min;
             if (x > max) return max;
             return x;
         }
 
-        interval expand(double delta) const {
+        interval expand(float delta) const {
             auto padding = delta / 2;
             return interval(min - padding, max + padding);
         }
@@ -45,11 +45,11 @@ class interval {
 const interval interval::empty = interval(+infinity, -infinity);
 const interval interval::universe = interval(-infinity, +infinity);
 
-interval operator+(const interval& ival, double displacement) {
+interval operator+(const interval& ival, float displacement) {
     return interval(ival.min + displacement, ival.max + displacement);
 }
 
-interval operator+(double displacement, const interval& ival) {
+interval operator+(float displacement, const interval& ival) {
     return ival + displacement;
 }
 

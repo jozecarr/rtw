@@ -13,7 +13,7 @@ class material {
     public:
         ~material() = default;
 
-        virtual colour emitted(double u, double v, const point3& p) const {
+        virtual colour emitted(float u, float v, const point3& p) const {
             return colour(0,0,0);
         }
 
@@ -46,7 +46,7 @@ class lambertian : public material {
 
 class metal : public material {
     public:
-        metal(const colour& albedo, double fuzz) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
+        metal(const colour& albedo, float fuzz) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
 
         bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered) const override {
             vec3 reflected = reflect(r_in.direction(), rec.normal);
@@ -58,25 +58,25 @@ class metal : public material {
 
     private:
         colour albedo;
-        double fuzz;
+        float fuzz;
 };
 
 class dielectric : public material {
     public:
-        dielectric(double refration_index) : refraction_index(refration_index) {}
+        dielectric(float refration_index) : refraction_index(refration_index) {}
 
         bool scatter(const ray& r_in, const hit_record& rec, colour& attenuation, ray& scattered) const override {
             attenuation = colour(1.0, 1.0, 1.0);
-            double ri = rec.front_face ? (1.0 / refraction_index) : refraction_index;
+            float ri = rec.front_face ? (1.0 / refraction_index) : refraction_index;
 
             vec3 unit_direction = unit_vector(r_in.direction());
-            double cos_theta = std::fmin(dot(-unit_direction, rec.normal), 1.0);
-            double sin_theta = std::sqrt(1.0 - cos_theta*cos_theta);
+            float cos_theta = std::fmin(dot(-unit_direction, rec.normal), 1.0);
+            float sin_theta = std::sqrt(1.0 - cos_theta*cos_theta);
 
             bool cannot_refract = ri * sin_theta > 1.0;
             vec3 direction;
 
-            if (cannot_refract || reflectance(cos_theta, ri) > random_double())
+            if (cannot_refract || reflectance(cos_theta, ri) > random_float())
                 direction = reflect(unit_direction, rec.normal);
             else
                 direction = refract(unit_direction, rec.normal, ri);
@@ -86,9 +86,9 @@ class dielectric : public material {
         }
 
     private:
-        double refraction_index;
+        float refraction_index;
 
-        static double reflectance(double cosine, double refraction_index) {
+        static float reflectance(float cosine, float refraction_index) {
             // Schlick's approximation
             auto r0 = (1 - refraction_index) / (1 + refraction_index);
             r0 = r0*r0;
@@ -102,7 +102,7 @@ class diffuse_light : public material {
         diffuse_light(shared_ptr<texture> tex) : tex(tex) {}
         diffuse_light(const colour& emit) : tex(make_shared<solid_colour>(emit)) {}
 
-        colour emitted(double u, double v, const point3& p) const override {
+        colour emitted(float u, float v, const point3& p) const override {
             return tex->value(u, v, p);
         }
 

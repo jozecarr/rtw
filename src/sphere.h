@@ -6,14 +6,14 @@
 class sphere : public hittable {
     public:
         // stationary sphere
-        sphere(const point3& static_center, double radius, shared_ptr<material> mat) 
+        sphere(const point3& static_center, float radius, shared_ptr<material> mat) 
             : center(static_center, vec3(0,0,0)), radius(std::fmax(0,radius)), mat(mat) {
             auto rvec = vec3(radius, radius, radius);
             bbox = aabb(static_center - rvec, static_center + rvec);
         }
 
         // moving sphere
-        sphere(const point3& center1, const point3& center2, double radius, shared_ptr<material> mat)
+        sphere(const point3& center1, const point3& center2, float radius, shared_ptr<material> mat)
             : center(center1, center2 - center1), radius(std::fmax(0, radius)), mat(mat) {
             auto rvec = vec3(radius, radius, radius);
             aabb box1(center.at(0) - rvec, center.at(0) + rvec);
@@ -58,11 +58,11 @@ class sphere : public hittable {
 
     private:
         ray center;
-        double radius;
+        float radius;
         shared_ptr<material> mat;
         aabb bbox;
 
-        static void get_sphere_uv(const point3& p, double& u, double& v) {
+        static void get_sphere_uv(const point3& p, float& u, float& v) {
             // p: point on sphere of radius 1, centered at origin
             // u: retured value [0,1] of angle about y axis from x=-1
             // v: returned value [0,1] of angle from y=-1 to y=+1

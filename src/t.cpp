@@ -8,10 +8,45 @@
 #include "material.h"
 #include "sphere.h"
 #include "quad.h"
+#include "triangle.h"
 
 #include <cstdlib>
+#include <cstring>
 
-void health_check(bool do_threading = true, int thread_count = 0) { //よ
+//global settings
+int scene = 5;
+int thread_count = 0; // (0=automatic thread count)
+bool do_threading = true;
+int image_width = 0;       // (0=scene default)
+int samples_per_pixel = 0; // (0=scene default)
+int max_depth = 0;         // (0=scene default)
+
+void print_usage(const char* exe) {
+    std::cout
+        << "Usage: " << (exe ? exe : "t") << " [scene] [threads] [threading] [width] [samples] [depth]\n\n"
+        << "Arguments:\n"
+        << "  scene      Scene id (default: 5)\n"
+        << "  threads    Thread count (0 = automatic, default: 0)\n"
+        << "  threading  Enable threading (1/0, default: 1)\n"
+        << "  width      Image width in pixels (0 = scene default, default: 0)\n"
+        << "  samples    Samples per pixel (0 = scene default, default: 0)\n"
+        << "  depth      Max ray bounces (0 = scene default, default: 0)\n\n"
+        << "Scenes:\n"
+        << "  0  health_check\n"
+        << "  1  lotso_spheres\n"
+        << "  2  checkered_spheres\n"
+        << "  3  earth\n"
+        << "  4  perlin_spheres\n"
+        << "  5  quads\n"
+        << "  6  simple_light\n"
+        << "  7  cornell_box\n"
+        << "  8  cornell_smoke\n"
+        << "  9  big_scene\n"
+        << " 10  triangles_demo\n"
+        << " 11  cyberpunk\n";
+}
+
+void health_check() { //よ
     hittable_list world;
 
     auto red   = make_shared<lambertian>(colour(0.65, 0.05, 0.05));
@@ -21,9 +56,9 @@ void health_check(bool do_threading = true, int thread_count = 0) { //よ
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 1000;
-    cam.samples_per_pixel = 100;
-    cam.max_depth         = 50;
+    cam.image_width       = image_width > 0 ? image_width : 1000;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 100;
+    cam.max_depth         = max_depth > 0 ? max_depth : 50;
     cam.background        = colour(0.70, 0.80, 1.00);
     cam.vfov     = 20;
     cam.lookfrom = point3(3,3,2);
@@ -40,7 +75,7 @@ void health_check(bool do_threading = true, int thread_count = 0) { //よ
     }
 }
 
-void lotso_spheres(bool do_threading = true, int thread_count = 0) {
+void lotso_spheres() {
     hittable_list world;
 
     auto checker = make_shared<checker_texture>(0.32, colour(.2, .3, .1), colour(.9, .9, .9));
@@ -48,8 +83,8 @@ void lotso_spheres(bool do_threading = true, int thread_count = 0) {
 
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
-            auto choose_mat = random_double();
-            point3 center(a + 0.9*random_double(), 0.2, b + 0.9*random_double());
+            auto choose_mat = random_float();
+            point3 center(a + 0.9*random_float(), 0.2, b + 0.9*random_float());
 
             if ((center - point3(4, 0.2, 0)).length() > 0.9) {
                 shared_ptr<material> sphere_material;
@@ -58,12 +93,12 @@ void lotso_spheres(bool do_threading = true, int thread_count = 0) {
                     // diffuse
                     auto albedo = colour::random() * colour::random();
                     sphere_material = make_shared<lambertian>(albedo);
-                    auto center2 = center; //+ vec3(0, random_double(0, 0.5), 0);
+                    auto center2 = center; //+ vec3(0, random_float(0, 0.5), 0);
                     world.add(make_shared<sphere>(center, center2, 0.2, sphere_material));
                 } else if (choose_mat < 0.95) {
                     // metal
                     auto albedo = colour::random(0.5, 1);
-                    auto fuzz = random_double(0, 0.5);
+                    auto fuzz = random_float(0, 0.5);
                     sphere_material = make_shared<metal>(albedo, fuzz);
                     world.add(make_shared<sphere>(center, 0.2, sphere_material));
                 } else {
@@ -89,9 +124,9 @@ void lotso_spheres(bool do_threading = true, int thread_count = 0) {
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 800;
-    cam.samples_per_pixel = 250;
-    cam.max_depth         = 50;
+    cam.image_width       = image_width > 0 ? image_width : 800;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 250;
+    cam.max_depth         = max_depth > 0 ? max_depth : 50;
     cam.background        = colour(0.70, 0.80, 1.00);
 
     cam.vfov     = 20;
@@ -111,7 +146,7 @@ void lotso_spheres(bool do_threading = true, int thread_count = 0) {
     }
 }
 
-void checkered_spheres(bool do_threading = true, int thread_count = 0) {
+void checkered_spheres() {
     hittable_list world;
 
     auto checker = make_shared<checker_texture>(0.32, colour(.2, .3, .1), colour(.9, .9, .9));
@@ -122,9 +157,9 @@ void checkered_spheres(bool do_threading = true, int thread_count = 0) {
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 400;
-    cam.samples_per_pixel = 100;
-    cam.max_depth         = 50;
+    cam.image_width       = image_width > 0 ? image_width : 400;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 100;
+    cam.max_depth         = max_depth > 0 ? max_depth : 50;
     cam.background        = colour(0.70, 0.80, 1.00);
 
     cam.vfov     = 20;
@@ -143,7 +178,7 @@ void checkered_spheres(bool do_threading = true, int thread_count = 0) {
     }
 }
 
-void earth(bool do_threading = true, int thread_count = 0) {
+void earth() {
     auto earth_texture = make_shared<image_texture>("images/earthmap.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
     auto globe = make_shared<sphere>(point3(0,0,0), 2, earth_surface);
@@ -151,9 +186,9 @@ void earth(bool do_threading = true, int thread_count = 0) {
     camera cam;
 
     cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 400;
-    cam.samples_per_pixel = 100;
-    cam.max_depth = 50;
+    cam.image_width = image_width > 0 ? image_width : 400;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 100;
+    cam.max_depth = max_depth > 0 ? max_depth : 50;
     cam.background        = colour(0.70, 0.80, 1.00);
 
     cam.vfov = 20;
@@ -172,7 +207,7 @@ void earth(bool do_threading = true, int thread_count = 0) {
     }
 }
 
-void perlin_spheres(bool do_threading = true, int thread_count = 0) {
+void perlin_spheres() {
     hittable_list world;
 
     auto pertext = make_shared<noise_texture>(4);
@@ -182,9 +217,9 @@ void perlin_spheres(bool do_threading = true, int thread_count = 0) {
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 2560;
-    cam.samples_per_pixel = 100;
-    cam.max_depth         = 50;
+    cam.image_width       = image_width > 0 ? image_width : 2560;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 100;
+    cam.max_depth         = max_depth > 0 ? max_depth : 50;
     cam.background        = colour(0.70, 0.80, 1.00);
 
     cam.vfov     = 20;
@@ -203,7 +238,7 @@ void perlin_spheres(bool do_threading = true, int thread_count = 0) {
     }
 }
 
-void quads(bool do_threading = true, int thread_count = 0) {
+void quads() {
     hittable_list world;
 
     auto left_red     = make_shared<lambertian>(colour(1.0, 0.2, 0.2));
@@ -221,9 +256,9 @@ void quads(bool do_threading = true, int thread_count = 0) {
     camera cam;
 
     cam.aspect_ratio      = 1.0;
-    cam.image_width       = 400;
-    cam.samples_per_pixel = 100;
-    cam.max_depth         = 50;
+    cam.image_width       = image_width > 0 ? image_width : 400;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 100;
+    cam.max_depth         = max_depth > 0 ? max_depth : 50;
     cam.background        = colour(0.70, 0.80, 1.00);
 
     cam.vfov     = 80;
@@ -242,7 +277,7 @@ void quads(bool do_threading = true, int thread_count = 0) {
     }
 }
 
-void simple_light(bool do_threading = true, int thread_count = 0) {
+void simple_light() {
     hittable_list world;
 
     auto pertext = make_shared<noise_texture>(4);
@@ -256,9 +291,9 @@ void simple_light(bool do_threading = true, int thread_count = 0) {
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 2000;
-    cam.samples_per_pixel = 100;
-    cam.max_depth         = 100;
+    cam.image_width       = image_width > 0 ? image_width : 2000;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 100;
+    cam.max_depth         = max_depth > 0 ? max_depth : 100;
     cam.background        = colour(0,0,0);
 
     cam.vfov     = 20;
@@ -277,7 +312,7 @@ void simple_light(bool do_threading = true, int thread_count = 0) {
     }
 }
 
-void cornell_box(bool do_threading = true, int thread_count = 0) {
+void cornell_box() {
     hittable_list world;
 
     auto red   = make_shared<lambertian>(colour(.65, .05, .05));
@@ -305,9 +340,9 @@ void cornell_box(bool do_threading = true, int thread_count = 0) {
     camera cam;
 
     cam.aspect_ratio      = 1.0;
-    cam.image_width       = 600;
-    cam.samples_per_pixel = 200;
-    cam.max_depth         = 50;
+    cam.image_width       = image_width > 0 ? image_width : 600;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 200;
+    cam.max_depth         = max_depth > 0 ? max_depth : 50;
     cam.background        = colour(0,0,0);
 
     cam.vfov     = 40;
@@ -326,7 +361,7 @@ void cornell_box(bool do_threading = true, int thread_count = 0) {
     }
 }
 
-void cornell_smoke(bool do_threading = true, int thread_count = 0) {
+void cornell_smoke() {
     hittable_list world;
 
     auto red   = make_shared<lambertian>(colour(.65, .05, .05));
@@ -355,9 +390,9 @@ void cornell_smoke(bool do_threading = true, int thread_count = 0) {
     camera cam;
 
     cam.aspect_ratio      = 1.0;
-    cam.image_width       = 600;
-    cam.samples_per_pixel = 200;
-    cam.max_depth         = 50;
+    cam.image_width       = image_width > 0 ? image_width : 600;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 200;
+    cam.max_depth         = max_depth > 0 ? max_depth : 50;
     cam.background        = colour(0,0,0);
 
     cam.vfov     = 40;
@@ -376,7 +411,7 @@ void cornell_smoke(bool do_threading = true, int thread_count = 0) {
     }
 }
 
-void big_scene(int image_width, int samples_per_pixel, int max_depth, bool do_threading = true, int thread_count = 0) {
+void big_scene() {
     hittable_list boxes1;
     auto ground = make_shared<lambertian>(colour(0.48, 0.83, 0.53));
 
@@ -388,7 +423,7 @@ void big_scene(int image_width, int samples_per_pixel, int max_depth, bool do_th
             auto z0 = -1000.0 + j*w;
             auto y0 = 0.0;
             auto x1 = x0 + w;
-            auto y1 = random_double(1,101);
+            auto y1 = random_float(1,101);
             auto z1 = z0 + w;
 
             boxes1.add(box(point3(x0,y0,z0), point3(x1,y1,z1), ground));
@@ -427,7 +462,7 @@ void big_scene(int image_width, int samples_per_pixel, int max_depth, bool do_th
     auto white = make_shared<lambertian>(colour(.73, .73, .73));
     int ns = 1000;
     for (int j = 0; j < ns; j++) {
-        boxes2.add(make_shared<sphere>(point3::random(0,165), 10, white));
+        boxes2.add(make_shared<sphere>(point3::random(0,165), 10, make_shared<lambertian>(colour(random_float(0,1),random_float(0,1),random_float(0,1)))));
     }
 
     world.add(make_shared<translate>(
@@ -440,14 +475,234 @@ void big_scene(int image_width, int samples_per_pixel, int max_depth, bool do_th
     camera cam;
 
     cam.aspect_ratio      = 1.0;
-    cam.image_width       = image_width;
-    cam.samples_per_pixel = samples_per_pixel;
-    cam.max_depth         = max_depth;
+    cam.image_width       = image_width > 0 ? image_width : 2560;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 1000;
+    cam.max_depth         = max_depth > 0 ? max_depth : 100;
     cam.background        = colour(0,0,0);
 
     cam.vfov     = 40;
     cam.lookfrom = point3(478, 278, -600);
     cam.lookat   = point3(278, 278, 0);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0;
+
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
+}
+
+void triangles_demo() {
+    hittable_list world;
+
+    // Ground plane using two triangles
+    auto ground = make_shared<lambertian>(colour(0.5, 0.5, 0.5));
+    world.add(make_shared<triangle>(
+        point3(-10, 0, -10), point3(10, 0, -10), point3(10, 0, 10), ground));
+    world.add(make_shared<triangle>(
+        point3(-10, 0, -10), point3(10, 0, 10), point3(-10, 0, 10), ground));
+
+    // Pyramid made of triangles
+    auto gold = make_shared<metal>(colour(0.8, 0.6, 0.2), 0.1);
+    point3 apex(0, 2, 0);
+    point3 bl(-1, 0, -1), br(1, 0, -1), fr(1, 0, 1), fl(-1, 0, 1);
+
+    world.add(make_shared<triangle>(apex, bl, br, gold));  // back
+    world.add(make_shared<triangle>(apex, br, fr, gold));  // right
+    world.add(make_shared<triangle>(apex, fr, fl, gold));  // front
+    world.add(make_shared<triangle>(apex, fl, bl, gold));  // left
+
+    // Tetrahedron with rotate_x (tilted forward)
+    auto glass = make_shared<dielectric>(1.5);
+    auto tetra = make_shared<hittable_list>();
+    float h = std::sqrt(2.0/3.0);
+    point3 t0(0, h, 0);
+    point3 t1(-0.5, 0, -std::sqrt(3.0)/6.0);
+    point3 t2(0.5, 0, -std::sqrt(3.0)/6.0);
+    point3 t3(0, 0, std::sqrt(3.0)/3.0);
+
+    tetra->add(make_shared<triangle>(t0, t1, t2, glass));
+    tetra->add(make_shared<triangle>(t0, t2, t3, glass));
+    tetra->add(make_shared<triangle>(t0, t3, t1, glass));
+    tetra->add(make_shared<triangle>(t1, t3, t2, glass));
+
+    // Apply rotate_x (tilt 30 degrees) and translate
+    shared_ptr<hittable> tilted_tetra = make_shared<rotate_x>(tetra, 30);
+    tilted_tetra = make_shared<translate>(tilted_tetra, vec3(-2.5, 0.5, 0));
+    world.add(tilted_tetra);
+
+    // Octahedron with rotate_z (leaning sideways)
+    auto red_mat = make_shared<lambertian>(colour(0.8, 0.1, 0.1));
+    auto octa = make_shared<hittable_list>();
+    point3 top(0, 1, 0), bot(0, -1, 0);
+    point3 o1(1, 0, 0), o2(0, 0, 1), o3(-1, 0, 0), o4(0, 0, -1);
+
+    // Top half
+    octa->add(make_shared<triangle>(top, o1, o2, red_mat));
+    octa->add(make_shared<triangle>(top, o2, o3, red_mat));
+    octa->add(make_shared<triangle>(top, o3, o4, red_mat));
+    octa->add(make_shared<triangle>(top, o4, o1, red_mat));
+    // Bottom half
+    octa->add(make_shared<triangle>(bot, o2, o1, red_mat));
+    octa->add(make_shared<triangle>(bot, o3, o2, red_mat));
+    octa->add(make_shared<triangle>(bot, o4, o3, red_mat));
+    octa->add(make_shared<triangle>(bot, o1, o4, red_mat));
+
+    // Apply rotate_z (lean 25 degrees) and translate
+    shared_ptr<hittable> leaning_octa = make_shared<rotate_z>(octa, 25);
+    leaning_octa = make_shared<translate>(leaning_octa, vec3(2.5, 1, 0));
+    world.add(leaning_octa);
+
+    // Diamond shape with arbitrary axis rotation
+    auto blue_mat = make_shared<lambertian>(colour(0.2, 0.3, 0.8));
+    auto diamond = make_shared<hittable_list>();
+    point3 dtop(0, 1.5, 0), dbot(0, -0.5, 0);
+    point3 d1(0.7, 0.5, 0), d2(0, 0.5, 0.7), d3(-0.7, 0.5, 0), d4(0, 0.5, -0.7);
+
+    diamond->add(make_shared<triangle>(dtop, d1, d2, blue_mat));
+    diamond->add(make_shared<triangle>(dtop, d2, d3, blue_mat));
+    diamond->add(make_shared<triangle>(dtop, d3, d4, blue_mat));
+    diamond->add(make_shared<triangle>(dtop, d4, d1, blue_mat));
+    diamond->add(make_shared<triangle>(dbot, d2, d1, blue_mat));
+    diamond->add(make_shared<triangle>(dbot, d3, d2, blue_mat));
+    diamond->add(make_shared<triangle>(dbot, d4, d3, blue_mat));
+    diamond->add(make_shared<triangle>(dbot, d1, d4, blue_mat));
+
+    // Arbitrary axis rotation (diagonal axis)
+    shared_ptr<hittable> spinning_diamond = make_shared<rotate>(diamond, vec3(1, 1, 0), 45);
+    spinning_diamond = make_shared<translate>(spinning_diamond, vec3(0, 1.5, -2.5));
+    world.add(spinning_diamond);
+
+    // Light source
+    auto light = make_shared<diffuse_light>(colour(4, 4, 4));
+    world.add(make_shared<quad>(point3(-2, 5, -2), vec3(4, 0, 0), vec3(0, 0, 4), light));
+
+    world = hittable_list(make_shared<bvh_node>(world));
+
+    camera cam;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = image_width > 0 ? image_width : 800;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 200;
+    cam.max_depth         = max_depth > 0 ? max_depth : 50;
+    cam.background        = colour(0.1, 0.1, 0.15);
+
+    cam.vfov     = 40;
+    cam.lookfrom = point3(0, 4, 8);
+    cam.lookat   = point3(0, 1, 0);
+    cam.vup      = vec3(0, 1, 0);
+
+    cam.defocus_angle = 0;
+
+    if (thread_count > 0) {
+        cam.render(world, thread_count);
+    } else if (do_threading) {
+        cam.render(world);
+    } else {
+        cam.render(world, 1);
+    }
+}
+
+void cyberpunk() {
+    hittable_list world;
+
+    // rain-slicked street
+    auto asphalt = make_shared<metal>(colour(0.05, 0.05, 0.08), 0.04);
+    world.add(make_shared<quad>(point3(-1000, 0, -1000), vec3(2000, 0, 0), vec3(0, 0, 3000), asphalt));
+
+    colour neon_palette[5] = {
+        colour(1.00, 0.10, 0.60),  // magenta
+        colour(0.10, 0.90, 1.00),  // cyan
+        colour(0.55, 0.20, 1.00),  // violet
+        colour(1.00, 0.45, 0.10),  // amber
+        colour(0.15, 1.00, 0.50),  // green
+    };
+
+    // tower blocks lining both sides of the street, neon signage on the street-facing walls
+    hittable_list city;
+    auto tower = make_shared<lambertian>(colour(0.08, 0.09, 0.12));
+    auto glass_facade = make_shared<metal>(colour(0.20, 0.25, 0.35), 0.15);
+    for (int side = 0; side < 2; side++) {
+        float dir = (side == 0) ? -1.0 : 1.0;
+        for (int row = 0; row < 2; row++) {
+            for (int j = 0; j < 14; j++) {
+                float w = 90;
+                float x_in = dir * (110 + row*110);
+                float z0 = -550 + j*110;
+                float h = random_float(120, 420) + row*random_float(0, 200);
+
+                shared_ptr<material> facade = tower;
+                if (random_float() < 0.35) facade = glass_facade;
+                city.add(box(point3(x_in, 0, z0), point3(x_in + dir*w, h, z0 + w), facade));
+
+                int signs = random_int(1, 3);
+                for (int s = 0; s < signs; s++) {
+                    auto neon = make_shared<diffuse_light>(3.5 * neon_palette[random_int(0, 4)]);
+                    float sw = random_float(15, 55);
+                    float sh = random_float(6, 14);
+                    float sy = random_float(15, h - 25);
+                    float sz = z0 + random_float(5, w - sw - 5);
+                    city.add(make_shared<quad>(point3(x_in - dir*0.5, sy, sz), vec3(0, 0, sw), vec3(0, sh, 0), neon));
+                }
+            }
+        }
+    }
+    world.add(make_shared<bvh_node>(city));
+
+    // kerb strip lights
+    auto strip_cyan = make_shared<diffuse_light>(colour(0.4, 3.0, 3.6));
+    auto strip_pink = make_shared<diffuse_light>(colour(3.6, 0.4, 2.4));
+    for (int j = 0; j < 14; j++) {
+        float z0 = -550 + j*110;
+        world.add(make_shared<quad>(point3(-105, 0.5, z0), vec3(4, 0, 0), vec3(0, 0, 90), strip_cyan));
+        world.add(make_shared<quad>(point3(101, 0.5, z0), vec3(4, 0, 0), vec3(0, 0, 90), strip_pink));
+    }
+
+    // synthwave sun at the end of the street
+    world.add(make_shared<sphere>(point3(0, 250, 2500), 450, make_shared<diffuse_light>(colour(2.5, 0.6, 1.2))));
+
+    // motion-blurred hover traffic
+    world.add(make_shared<sphere>(point3(-45, 130, -120), point3(-45, 130, 40), 6, make_shared<diffuse_light>(colour(7, 6.5, 5))));
+    world.add(make_shared<sphere>(point3(50, 180, 350), point3(50, 180, 190), 6, make_shared<diffuse_light>(colour(7, 1.0, 1.4))));
+
+    // chrome and glass street props
+    world.add(make_shared<sphere>(point3(-60, 45, 130), 45, make_shared<metal>(colour(0.85, 0.9, 0.95), 0.02)));
+    world.add(make_shared<sphere>(point3(60, 35, -40), 35, make_shared<dielectric>(1.5)));
+
+    // plasma core: glowing gas in a glass shell
+    auto core = make_shared<sphere>(point3(0, 55, 430), 55, make_shared<dielectric>(1.5));
+    world.add(core);
+    world.add(make_shared<constant_medium>(core, 0.15, colour(0.2, 0.9, 1.0)));
+
+    // holographic particle cloud drifting over the street
+    hittable_list holo;
+    for (int j = 0; j < 1000; j++) {
+        auto glow = make_shared<diffuse_light>(1.8 * neon_palette[random_int(0, 4)]);
+        holo.add(make_shared<sphere>(point3::random(0, 120), 3, glow));
+    }
+    world.add(make_shared<translate>(
+        make_shared<rotate_y>(make_shared<bvh_node>(holo), 25),
+        vec3(-75, 230, 260)));
+
+    // low-hanging smog
+    auto smog = make_shared<sphere>(point3(0, 0, 0), 5000, make_shared<dielectric>(1.5));
+    world.add(make_shared<constant_medium>(smog, 0.0002, colour(0.55, 0.65, 0.8)));
+
+    camera cam;
+
+    cam.aspect_ratio      = 1.0;
+    cam.image_width       = image_width > 0 ? image_width : 2560;
+    cam.samples_per_pixel = samples_per_pixel > 0 ? samples_per_pixel : 1000;
+    cam.max_depth         = max_depth > 0 ? max_depth : 100;
+    cam.background        = colour(0.01, 0.01, 0.025);
+
+    cam.vfov     = 55;
+    cam.lookfrom = point3(-35, 110, -680);
+    cam.lookat   = point3(5, 170, 200);
     cam.vup      = vec3(0,1,0);
 
     cam.defocus_angle = 0;
@@ -474,27 +729,35 @@ int main(int argc, char** argv) {
         return static_cast<int>(v);
     };
 
-    int scene = 5;
-    int thread_count = 0; // (0=automatic thread count)
-    bool do_threading = true;
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "-h") == 0 || std::strcmp(argv[i], "--help") == 0) {
+            print_usage(argv[0]);
+            return 0;
+        }
+    }
 
-    if (argc > 1) scene = parse_int(argv[1], scene);
-    if (argc > 2) thread_count = parse_int(argv[2], thread_count);
-    if (argc > 3) do_threading = (parse_int(argv[3], 1) != 0);
+    if (argc > 1) scene             =  parse_int(argv[1], scene);
+    if (argc > 2) thread_count      =  parse_int(argv[2], thread_count);
+    if (argc > 3) do_threading      = (parse_int(argv[3], 1) != 0);
+    if (argc > 4) image_width       =  parse_int(argv[4], image_width);
+    if (argc > 5) samples_per_pixel =  parse_int(argv[5], samples_per_pixel);
+    if (argc > 6) max_depth         =  parse_int(argv[6], max_depth);
 
     auto start1 = clock::now();
     switch (scene) {
-        case 0:  health_check(do_threading, thread_count);              break;
-        case 1:  lotso_spheres(do_threading, thread_count);             break;
-        case 2:  checkered_spheres(do_threading, thread_count);         break;
-        case 3:  earth(do_threading, thread_count);                     break;
-        case 4:  perlin_spheres(do_threading, thread_count);            break;
-        case 5:  quads(do_threading, thread_count);                     break;
-        case 6:  simple_light(do_threading, thread_count);              break;
-        case 7:  cornell_box(do_threading, thread_count);               break;
-        case 8:  cornell_smoke(do_threading, thread_count);             break;
-        case 9:  big_scene(2560, 10000, 100, do_threading, thread_count); break;
-        default: health_check(do_threading, thread_count);              break;
+        case 0:  health_check();                break;
+        case 1:  lotso_spheres();               break;
+        case 2:  checkered_spheres();           break;
+        case 3:  earth();                       break;
+        case 4:  perlin_spheres();              break;
+        case 5:  quads();                       break;
+        case 6:  simple_light();                break;
+        case 7:  cornell_box();                 break;
+        case 8:  cornell_smoke();               break;
+        case 9:  big_scene();                   break;
+        case 10: triangles_demo();              break;
+        case 11: cyberpunk();                   break;
+        default: health_check();                break;
     }
     auto end1 = clock::now();
 

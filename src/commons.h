@@ -18,16 +18,16 @@ using std::shared_ptr;
 // Constants
 
 // Use max() instead of infinity to avoid UB under fast-math-style flags.
-const double infinity = std::numeric_limits<double>::max();
-const double pi = 3.1415926535897932385;
+const float infinity = std::numeric_limits<float>::max();
+const float pi = 3.1415926535897932385;
 
 // Utility Functions
 
-inline double degrees_to_radians(double degrees) {
+inline float degrees_to_radians(float degrees) {
     return degrees * pi / 180.0;
 }
 
-inline double random_double() {
+inline float random_float() {
     // Returns a random real in [0,1)
     // xorshift64*; fast thread-local RNG state.
     static thread_local uint64_t state = 0;
@@ -46,17 +46,17 @@ inline double random_double() {
     x ^= x >> 27;
     x *= 0x2545F4914F6CDD1DULL;
     state = x;
-    return (x >> 11) * (1.0 / 9007199254740992.0);
+    return (x >> 40) * (1.0f / 16777216.0f);
 }
 
-inline double random_double(double min, double max) {
+inline float random_float(float min, float max) {
     // Returns a random real in [min,max)
-    return min + (max-min)*random_double();
+    return min + (max-min)*random_float();
 }
 
 inline int random_int(int min, int max) {
     // returns random int in [min, max]
-    return int(random_double(min, max + 1));
+    return int(random_float(min, max + 1));
 }
 
 // Common Headers

@@ -47,7 +47,7 @@ class quad : public hittable {
             return true;
         }
 
-        virtual bool is_interior(double a, double b, hit_record& rec) const {
+        virtual bool is_interior(float a, float b, hit_record& rec) const {
             interval unit_interval = interval(0,1);
 
             if(!unit_interval.contains(a) || !unit_interval.contains(b)) return false;
@@ -64,7 +64,7 @@ class quad : public hittable {
         shared_ptr<material> mat;
         aabb bbox;
         vec3 normal;
-        double D;
+        float D;
 };
 
 inline shared_ptr<hittable_list> box(const point3& a, const point3& b, shared_ptr<material> mat) {

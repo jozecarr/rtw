@@ -14,7 +14,7 @@ class perlin {
             perlin_generate_perm(perm_z);
         }
 
-        double noise(const point3& p) const {
+        float noise(const point3& p) const {
             auto u = p.x() - std::floor(p.x());
             auto v = p.y() - std::floor(p.y());
             auto w = p.z() - std::floor(p.z());
@@ -36,7 +36,7 @@ class perlin {
             return perlin_interp(c,u,v,w);
         }
 
-        double turb(const point3& p, int depth) const {
+        float turb(const point3& p, int depth) const {
             auto accum = 0.0;
             auto temp_p = p;
             auto weight = 1.0;
@@ -73,7 +73,7 @@ class perlin {
             }
         }
 
-        static double perlin_interp(const vec3 c[2][2][2], double u, double v, double w) {
+        static float perlin_interp(const vec3 c[2][2][2], float u, float v, float w) {
             auto uu = u*u*(3-2*u);
             auto vv = v*v*(3-2*v);
             auto ww = w*w*(3-2*w);
